@@ -6,10 +6,7 @@ This repo is the unofficial implementation of "[Motion Guided 3D Pose Estimation
 
 There are many omitted parts in the paper, so the "[Conditional Directed Graph Convolution for 3D Human Pose Estimation](https://arxiv.org/abs/2107.07797), Wenbo Hu, Changgong Zhang, Fangneng Zhan, Lei Zhang, Tien-Tsin Wong" paper was referenced when implementing it. Therefore, note that there may be differences between actual papers and the way they are implemented. We welcome feedback on implementation errors.
 
-
-<p float="left">
-  <img src="figure/pipline.jpg" width="98%" /><br>
-  <img src="figure/visualation.jpg" width="98%" />
+<p align="center"><img src="figure/visualation.jpg" width="100%" alt="" /></p>
 
 ## Dependencies
 
