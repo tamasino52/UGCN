@@ -47,19 +47,19 @@ class Model(nn.Module):
             nn.Identity(),
             nn.ModuleList((
                 st_gcn(32, 16, kernel_size, 1, dropout),
-                nn.Upsample(scale_factor=(2, 1), mode='bilinear'),
+                nn.Upsample(scale_factor=(2, 1), mode='bilinear', align_corners=True),
             )),
             nn.ModuleList((
                 st_gcn(64, 32, kernel_size, 1, dropout),
-                nn.Upsample(scale_factor=(2, 1), mode='bilinear'),
+                nn.Upsample(scale_factor=(2, 1), mode='bilinear', align_corners=True),
             )),
             nn.ModuleList((
                 st_gcn(128, 64, kernel_size, 1, dropout),
-                nn.Upsample(scale_factor=(2, 1), mode='bilinear'),
+                nn.Upsample(scale_factor=(2, 1), mode='bilinear', align_corners=True),
             )),
             nn.ModuleList((
                 st_gcn(256, 128, kernel_size, 1, dropout),
-                nn.Upsample(scale_factor=(2, 1), mode='bilinear'),
+                nn.Upsample(scale_factor=(2, 1), mode='bilinear', align_corners=True),
             )),
         ))
 
@@ -68,19 +68,19 @@ class Model(nn.Module):
             nn.Identity(),
             nn.ModuleList((
                 st_gcn(32, 16, kernel_size, 1, dropout),
-                nn.Upsample(scale_factor=(4, 1), mode='bilinear'),
+                nn.Upsample(scale_factor=(4, 1), mode='bilinear', align_corners=True),
             )),
             nn.ModuleList((
                 st_gcn(64, 16, kernel_size, 1, dropout),
-                nn.Upsample(scale_factor=(8, 1), mode='bilinear'),
+                nn.Upsample(scale_factor=(8, 1), mode='bilinear', align_corners=True),
             )),
             nn.ModuleList((
                 st_gcn(128, 16, kernel_size, 1, dropout),
-                nn.Upsample(scale_factor=(16, 1), mode='bilinear'),
+                nn.Upsample(scale_factor=(16, 1), mode='bilinear', align_corners=True),
             )),
         ))
 
-        self.conv = nn.Conv1d(16, self.out_channels, (1, 1))
+        self.conv = nn.Conv1d(16, self.out_channels * self.out_joints, (1, self.n_joints))
 
     def forward(self, x):
 
@@ -122,7 +122,8 @@ class Model(nn.Module):
         m2, _ = self.merge_stage[2][0](u2, self.A)
         m2 = self.merge_stage[2][1](m2)
 
-        x, _ = self.merge_stage[0](u0 + d0, self.A)
-        x = self.conv(x + m2 + m3 + m4)
+        x, _ = self.merge_stage[0](u0 + d0 + m2 + m3 + m4, self.A)
+        #x = x + m2 + m3 + m4
+        x = self.conv(x).view(x.shape[0], x.shape[2], self.out_joints, self.out_channels)
 
         return x.unsqueeze(dim=-1)

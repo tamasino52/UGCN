@@ -46,6 +46,7 @@ def step(split, opt, actions, dataLoader, model, optimizer=None, epoch=None):
 
     t = tqdm(dataLoader, 0)
     for i, data in enumerate(t):
+
         batch_cam, gt_3D, input_2D, action, subject, scale, bb_box, cam_ind = data
         [input_2D, gt_3D, batch_cam, scale, bb_box] = get_varialbe(split, [input_2D, gt_3D, batch_cam, scale, bb_box])
     
@@ -117,8 +118,8 @@ def input_augmentation(input_2D, model):
     input_2D_non_flip = input_2D[:, 0].view(N, T, J, C, 1).permute(0, 3, 1, 2, 4) 
 
     output_3D_flip = model(input_2D_flip)
-    output_3D_flip[:, 0] *= -1 
-    output_3D_flip[:, :, :, joints_left + joints_right] = output_3D_flip[:, :, :, joints_right + joints_left]
+    output_3D_flip[:, :, :, 0] *= -1
+    output_3D_flip[:, :, joints_left + joints_right] = output_3D_flip[:, :, joints_right + joints_left]
 
     output_3D_non_flip = model(input_2D_non_flip)
     output_3D = (output_3D_non_flip + output_3D_flip) / 2
@@ -129,7 +130,7 @@ def input_augmentation(input_2D, model):
 
 
 if __name__ == '__main__':
-    opt.manualSeed = 1234
+    opt.manualSeed = 4321
     random.seed(opt.manualSeed)
     torch.manual_seed(opt.manualSeed)
 
