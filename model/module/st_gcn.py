@@ -48,7 +48,7 @@ class Graph():
                              (0, 7), (7, 8), (8, 9), (9, 10), (8, 11), (11, 12),
                              (12, 13), (8, 14), (14, 15), (15, 16)]
             self.edge = self_link + neighbor_link
-            self.center = 1
+            self.center = 0
 
         elif layout == 'openpose':
             self.num_node = 18
@@ -337,8 +337,7 @@ class st_gcn(nn.Module):
         assert kernel_size[0] % 2 == 1
         padding = ((kernel_size[0] - 1) // 2, 0)
 
-        self.gcn = ConvTemporalGraphical(in_channels, out_channels,
-                                         kernel_size[1])
+        self.gcn = ConvTemporalGraphical(in_channels, out_channels, kernel_size[1])
 
         self.tcn = nn.Sequential(
             nn.BatchNorm2d(out_channels),

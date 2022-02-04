@@ -70,7 +70,7 @@ def step(split, opt, actions, dataLoader, model, optimizer=None, epoch=None):
             output_3D = model(input_2D) 
 
         output_3D = output_3D.permute(0, 2, 3, 4, 1).contiguous().view(N, -1, opt.out_joints, opt.out_channels)
-        output_3D = output_3D * scale.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1).repeat(1, output_3D.size(1),opt.out_joints, opt.out_channels) 
+        output_3D = output_3D * scale.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1).repeat(1, output_3D.size(1), opt.out_joints, opt.out_channels)
         
         output_3D_single = output_3D[:, opt.pad].unsqueeze(1) 
 
@@ -112,14 +112,14 @@ def input_augmentation(input_2D, model):
     joints_left = [4, 5, 6, 11, 12, 13] 
     joints_right = [1, 2, 3, 14, 15, 16]
 
-    N, _, T, J, C = input_2D.shape 
+    N, _, T, J, C = input_2D.shape
 
-    input_2D_flip = input_2D[:, 1].view(N, T, J, C, 1).permute(0, 3, 1, 2, 4)  
-    input_2D_non_flip = input_2D[:, 0].view(N, T, J, C, 1).permute(0, 3, 1, 2, 4) 
+    input_2D_flip = input_2D[:, 1].view(N, T, J, C, 1).permute(0, 3, 1, 2, 4)
+    input_2D_non_flip = input_2D[:, 0].view(N, T, J, C, 1).permute(0, 3, 1, 2, 4)
 
     output_3D_flip = model(input_2D_flip)
-    output_3D_flip[:, :, :, 0] *= -1
-    output_3D_flip[:, :, joints_left + joints_right] = output_3D_flip[:, :, joints_right + joints_left]
+    output_3D_flip[:, 0] *= -1
+    output_3D_flip[:, :, :, joints_left + joints_right] = output_3D_flip[:, :, :, joints_right + joints_left]
 
     output_3D_non_flip = model(input_2D_non_flip)
     output_3D = (output_3D_non_flip + output_3D_flip) / 2
@@ -170,13 +170,15 @@ if __name__ == '__main__':
     lr = opt.lr
     all_param += list(model.parameters())
 
-    optimizer = optim.Adam(all_param, lr=opt.lr, amsgrad=True, weight_decay=opt.weight_decay)
-    #scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[80, 90, 100], gamma=opt.lr_decay)
-    scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=opt.lr_decay)
+    optimizer = optim.AdamW(all_param, lr=opt.lr, weight_decay=opt.weight_decay)
+    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[80, 90, 100], gamma=opt.lr_decay)
+    #scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=opt.lr_decay)
+
     for epoch in range(1, opt.nepoch):
+        lr = scheduler.get_last_lr()
         if opt.train: 
             loss, error = train(opt, actions, train_dataloader, model, optimizer, epoch)
-        
+
         if opt.test:
             mpjpe = val(opt, actions, test_dataloader, model)
             data_threshold = mpjpe

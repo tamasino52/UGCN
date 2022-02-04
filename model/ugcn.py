@@ -80,10 +80,9 @@ class Model(nn.Module):
             )),
         ))
 
-        self.conv = nn.Conv1d(16, self.out_channels * self.out_joints, (1, self.n_joints))
+        self.head = nn.Conv2d(16, 3, kernel_size=1)
 
     def forward(self, x):
-
         # data normalization
         N, C, T, V, M = x.size()
         x = x.permute(0, 4, 3, 1, 2).contiguous()
@@ -123,7 +122,6 @@ class Model(nn.Module):
         m2 = self.merge_stage[2][1](m2)
 
         x, _ = self.merge_stage[0](u0 + d0 + m2 + m3 + m4, self.A)
-        #x = x + m2 + m3 + m4
-        x = self.conv(x).view(x.shape[0], x.shape[2], self.out_joints, self.out_channels)
+        x = self.head(x)
 
         return x.unsqueeze(dim=-1)

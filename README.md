@@ -54,7 +54,7 @@ Here, we compare our UGCN with recent state-of-the-art methods on Human3.6M data
 To train on Human3.6M:
 
 ```bash
-python main.py --train
+python main.py --train --lr 0.005 --dropout 0.3 --lr_decay 0.1 --batch_size 256
 ```
 
 ## Citation
