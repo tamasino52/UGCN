@@ -121,7 +121,7 @@ class Model(nn.Module):
         m2, _ = self.merge_stage[2][0](u2, self.A)
         m2 = self.merge_stage[2][1](m2)
 
-        x, _ = self.merge_stage[0](u0 + d0 + m2 + m3 + m4, self.A)
-        x = self.head(x)
+        x, _ = self.merge_stage[0](u0 + d0, self.A)
+        x = self.head(x + m2 + m3 + m4)
 
         return x.unsqueeze(dim=-1)

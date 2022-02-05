@@ -9,7 +9,8 @@ This repo is the unofficial implementation of "[Motion Guided 3D Pose Estimation
 
 There are many omitted parts in the paper, so the "[Conditional Directed Graph Convolution for 3D Human Pose Estimation](https://arxiv.org/abs/2107.07797), Wenbo Hu, Changgong Zhang, Fangneng Zhan, Lei Zhang, Tien-Tsin Wong" paper was referenced when implementing it. Therefore, note that there may be differences between actual papers and the way they are implemented. We welcome feedback on implementation errors.
 
-<p align="center"><img src="figure/visualation.jpg" width="100%" alt="" /></p>
+## Abstract
+We propose a new loss function, called motion loss, for the problem of monocular 3D Human pose estimation from 2D pose. In computing motion loss, a simple yet effective representation for keypoint motion, called pairwise motion encoding, is introduced. We design a new graph convolutional network architecture, U-shaped GCN (UGCN). It captures both short-term and long-term motion information to fully leverage the additional supervision from the motion loss. We experiment training UGCN with the motion loss on two large scale benchmarks: Human3.6M and MPI-INF-3DHP. Our model surpasses other state-of-the-art models by a large margin. It also demonstrates strong capacity in producing smooth 3D sequences and recovering keypoint motion.
 
 ## Dependencies
 
@@ -39,13 +40,13 @@ python main.py --reload --previous_dir 'checkpoint/pretrained'
 Here, we compare our UGCN with recent state-of-the-art methods on Human3.6M dataset. Evaluation metric is Mean Per Joint Position Error (MPJPE) in mm​. 
 
 
-|   Models    |  MPJPE   |
-| :---------: | :------: |
-| VideoPose3D |   46.8   |
-| PoseFormer  |   44.3   |
-|  MHFormer   | **43.0** |
-| U-CondDGCN  |   43.4   |
-|  UGCN(ours) |   45.6   |
+|   Types   |   Models    |  MPJPE   |
+| :-------: | :---------: | :------: |
+|    TCN    | VideoPose3D |   46.8   |
+|    ViT    | PoseFormer  |   44.3   |
+|    ViT    |  MHFormer   | **43.0** |
+|    GCN    | U-CondDGCN  |   43.4   |
+|    GCN    |  UGCN(ours) |   45.6   |
 
 
 
