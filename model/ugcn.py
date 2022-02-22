@@ -24,7 +24,7 @@ class Model(nn.Module):
         self.data_bn = nn.BatchNorm1d(self.in_channels * A.size(1))
 
         self.down_stage = nn.ModuleList((
-            st_gcn(self.in_channels, 16, kernel_size, 1, residual=False),
+            st_gcn(self.in_channels, 16, kernel_size, 1, dropout),
             nn.ModuleList((
                 st_gcn(16, 32, kernel_size, 2, dropout),
                 st_gcn(32, 32, kernel_size, 1, dropout),
@@ -121,7 +121,7 @@ class Model(nn.Module):
         m2, _ = self.merge_stage[2][0](u2, self.A)
         m2 = self.merge_stage[2][1](m2)
 
-        x, _ = self.merge_stage[0](u0 + d0, self.A)
-        x = self.head(x + m2 + m3 + m4)
+        x, _ = self.merge_stage[0](u0 + d0 + m2 + m3 + m4, self.A)
+        x = self.head(x)
 
         return x.unsqueeze(dim=-1)

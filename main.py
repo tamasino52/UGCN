@@ -130,7 +130,7 @@ def input_augmentation(input_2D, model):
 
 
 if __name__ == '__main__':
-    opt.manualSeed = 2314
+    opt.manualSeed = 1313
     random.seed(opt.manualSeed)
     torch.manual_seed(opt.manualSeed)
 
@@ -171,8 +171,8 @@ if __name__ == '__main__':
     all_param += list(model.parameters())
 
     optimizer = optim.AdamW(all_param, lr=opt.lr, weight_decay=opt.weight_decay)
-    #scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[80, 90, 100], gamma=opt.lr_decay)
-    scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.95)
+    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[80, 90, 100], gamma=opt.lr_decay)
+    #scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.95)
 
     for epoch in range(1, opt.nepoch):
         lr = scheduler.get_last_lr()[0]

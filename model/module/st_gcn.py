@@ -26,8 +26,8 @@ class Graph():
 
     def __init__(self,
                  layout='h36m',
-                 strategy='distance',
-                 max_hop=6,
+                 strategy='spatial',
+                 max_hop=5,
                  dilation=1):
         self.max_hop = max_hop
         self.dilation = dilation
@@ -330,7 +330,7 @@ class st_gcn(nn.Module):
                  kernel_size,
                  stride=1,
                  dropout=0,
-                 residual=True):
+                 residual=False):
         super().__init__()
 
         assert len(kernel_size) == 2
