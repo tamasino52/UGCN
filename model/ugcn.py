@@ -21,25 +21,26 @@ class Model(nn.Module):
         self.out_channels = args.out_channels
         self.n_joints = args.n_joints
         self.out_joints = args.out_joints
+        self.frames = args.frames
         self.data_bn = nn.BatchNorm1d(self.in_channels * A.size(1))
 
         self.down_stage = nn.ModuleList((
             st_gcn(self.in_channels, 16, kernel_size, 1, dropout, residual=False),
             nn.ModuleList((
-                st_gcn(16, 32, kernel_size, 2, dropout),
-                st_gcn(32, 32, kernel_size, 1, dropout),
+                st_gcn(16, 32, kernel_size, 2, dropout, residual=True),
+                st_gcn(32, 32, kernel_size, 1, dropout, residual=True),
             )),
             nn.ModuleList((
-                st_gcn(32, 64, kernel_size, 2, dropout),
-                st_gcn(64, 64, kernel_size, 1, dropout),
+                st_gcn(32, 64, kernel_size, 2, dropout, residual=True),
+                st_gcn(64, 64, kernel_size, 1, dropout, residual=True),
             )),
             nn.ModuleList((
-                st_gcn(64, 128, kernel_size, 2, dropout),
-                st_gcn(128, 128, kernel_size, 1, dropout),
+                st_gcn(64, 128, kernel_size, 2, dropout, residual=True),
+                st_gcn(128, 128, kernel_size, 1, dropout, residual=True),
             )),
             nn.ModuleList((
-                st_gcn(128, 256, kernel_size, 2, dropout),
-                st_gcn(256, 256, kernel_size, 1, dropout),
+                st_gcn(128, 256, kernel_size, 2, dropout, residual=True),
+                st_gcn(256, 256, kernel_size, 1, dropout, residual=True),
             )),
         ))
 
@@ -64,7 +65,7 @@ class Model(nn.Module):
         ))
 
         self.merge_stage = nn.ModuleList((
-            st_gcn(16, 16, kernel_size, 1, dropout),
+            ConvTemporalGraphical(16, 16, kernel_size[1]),
             nn.Identity(),
             nn.ModuleList((
                 st_gcn(32, 16, kernel_size, 1, dropout),
@@ -80,7 +81,11 @@ class Model(nn.Module):
             )),
         ))
 
-        self.head = nn.Conv1d(16*self.n_joints, self.n_joints*self.out_channels, kernel_size=1)
+        self.head = nn.Sequential(
+            nn.BatchNorm2d(16),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(16, 3, (kernel_size[0], 1), padding=((kernel_size[0] - 1) // 2, 0))
+        )
 
     def forward(self, x):
         # data normalization
@@ -106,11 +111,11 @@ class Model(nn.Module):
         # up stage
         u4, _ = self.up_stage[4][0](d4, self.A)
         u3 = self.up_stage[4][1](u4)
-        u3, _ = self.up_stage[3][0](d3 + u3, self.A)
+        u3, _ = self.up_stage[3][0]((d3 + u3) / 2, self.A)
         u2 = self.up_stage[3][1](u3)
-        u2, _ = self.up_stage[2][0](d2 + u2, self.A)
+        u2, _ = self.up_stage[2][0]((d2 + u2) / 2, self.A)
         u1 = self.up_stage[2][1](u2)
-        u1, _ = self.up_stage[1][0](d1 + u1, self.A)
+        u1, _ = self.up_stage[1][0]((d1 + u1) / 2, self.A)
         u0 = self.up_stage[1][1](u1)
 
         # merge stage
@@ -121,10 +126,8 @@ class Model(nn.Module):
         m2, _ = self.merge_stage[2][0](u2, self.A)
         m2 = self.merge_stage[2][1](m2)
 
-        x, _ = self.merge_stage[0](u0 + d0 + m2 + m3 + m4, self.A)
+        x, _ = self.merge_stage[0](((u0 + d0) / 2 + (m2 + m3 + m4) / 3) / 2, self.A)
 
-        x = x.permute(0, 1, 3, 2).contiguous().view(N, -1, T)
         x = self.head(x)
-        x = x.view(N, -1, V, T).permute(0, 1, 3, 2).contiguous()
 
         return x.unsqueeze(dim=-1)
